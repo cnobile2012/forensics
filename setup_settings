@@ -1,0 +1,2 @@
+APP_PATH=$(pwd)
+export PYTHONPATH=${APP_PATH}
