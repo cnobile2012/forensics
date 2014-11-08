@@ -7,10 +7,18 @@
 # Publisher: Elsevier
 # ISBN: 978-0-12-418676-7
 #
-# My work is just an exercise in understanding the concepts of Forensics
-# with regard to its use in computer sicence.
+# This work is an exercise in understanding the concepts of Forensics with
+# regard to its use in computer sicence.
 #
 # by: Carl J.Nobile
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
 #
 
 import os
