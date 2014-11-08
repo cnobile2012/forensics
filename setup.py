@@ -7,12 +7,14 @@ README = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
-    name='python-forensics',
+    name='forensic-utils',
     version='1.0',
-    packages=['src',],
+    packages=['forensics',],
+    scripts=['bin/walker.py',],
     include_package_data=True,
     license='MIT License',
-    description=('A set of utilities to perform forensics on a computer system.'),
+    description=('A set of utilities to perform forensics on a computer '
+                 'system.'),
     long_description=README,
     url='https://github.com/cnobile2012/forensics',
     author='Carl J. Nobile',
@@ -25,6 +27,6 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
-        'Topic :: Dynamic Content',
-    ],
-)
+        'Topic :: Forensics :: Data Recovery',
+        ],
+    )
