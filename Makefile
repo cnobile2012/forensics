@@ -17,8 +17,8 @@ all	: tar
 #----------------------------------------------------------------------
 tar	: clean
 	@(cd ..; tar -czvf $(PACKAGE_DIR).tar.gz --exclude=".git" \
-          --exclude="logs/*.log" --exclude="data/*.csv" --exclude="dist/*" \
-          $(PACKAGE_DIR))
+          --exclude="logs/*.log" --exclude="data/*.csv" --exclude="data/*.ods" \
+          --exclude="dist/*" $(PACKAGE_DIR))
 
 api-docs: clean
 	@(cd $(DOCS_DIR); make)

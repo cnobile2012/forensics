@@ -8,6 +8,8 @@
 .~lock.*
 logs/*.log*
 data/*.csv
+data/*.ods
+data/*.xlsx
 old
 
 # C extensions
