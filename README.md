@@ -5,4 +5,11 @@ This work is based off ideas from the book "Python Forensics" by Chet Hosmer and
 
 This work is a complete rewrite of much of his work including some new functionality.
 
+Quick Notes on Operation
+------------------------
+
+ 1. Source the ```setup_settings``` script.
+    * $ . setup_settings
+ 2. Run ```walker.py```.
+    * $ bin/walker.py --help
 
