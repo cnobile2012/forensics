@@ -28,7 +28,7 @@ import traceback
 import argparse
 import datetime
 
-from forensics import setupLogger, WalkerUtilities
+from forensics import setupLogger, validatePath, WalkerUtilities
 
 
 __version__ = '1.0.0'
@@ -78,20 +78,14 @@ if __name__ == '__main__':
     log = setupLogger(fullpath=options.log_file, level=level)
     log.info("Options: %s", options)
 
-    if not os.path.exists(options.dir_path):
+    if not validatePath(options.dir_path, dir=True):
         msg = (u"The walking path seems to not exist, "
                u"please check: {}").format(options.dir_path)
         log.critical(msg)
         if options.quite: print msg
         sys.exit(1)
 
-    # Test that the report file has a valid path and a CSV file is indicated.
-    head, tail = os.path.split(options.report_path)
-    root, ext = os.path.splitext(tail)
-    head = head == u'' and u'.' or head
-    #print head, tail, root, ext
-
-    if not os.path.isdir(head) or not ext.lower() == u'.csv':
+    if not validatePath(options.report_path, csv=True):
         msg = (u"The report path '{}' must include a valid path and "
                u"CSV file.").format(options.report_path)
         log.critical(msg)
