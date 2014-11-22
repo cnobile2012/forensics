@@ -26,7 +26,7 @@ def validatePath(path, file=False, csv=False, dir=False):
         head, tail = os.path.split(path)
         root, ext = os.path.splitext(tail)
         head = head == u'' and u'.' or head
-        print head, tail, ext
+        #print head, tail, ext
 
         if os.path.isdir(head) and ext.lower() == u'.csv':
             result = True
