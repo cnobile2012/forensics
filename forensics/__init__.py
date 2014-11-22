@@ -18,7 +18,10 @@ def validatePath(path, file=False, csv=False, dir=False):
     result = False
 
     if file and os.path.isfile(path):
-        result = True
+        if os.access(path, os.R_OK):
+            result = True
+        else:
+            logging.getLogger().critical("File '%s' is not readable.", path)
     elif csv:
         head, tail = os.path.split(path)
         root, ext = os.path.splitext(tail)
