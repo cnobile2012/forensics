@@ -78,6 +78,7 @@ class WalkerUtilities(object):
                 row = self._gatherRowStats(inFile.read(), fname)
         except IOError as e:
             self._log.warn("Error opening file: %s, %s", fname, e)
+            row = []
 
         return row
 
