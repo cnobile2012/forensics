@@ -30,13 +30,13 @@ class WalkerUtilities(object):
     This class contains utility methods used for walking through a directory
     tree and gathering information about files.
     """
-    _STAT_TO_CONTAINER = ((u'st_mode', u'mode'), (u'st_uid', u'owner'),
-                          (u'st_gid', u'group'), (u'st_size', u'size'),
-                          (u'st_atime', u'atime'), (u'st_mtime', u'mtime'),
-                          (u'st_ctime', u'ctime'))
-    _MD5 = u'MD5'
-    _SHA256 = u'SHA256'
-    _SHA512 = u'SHA512'
+    _STAT_TO_CONTAINER = (('st_mode', 'mode'), ('st_uid', 'owner'),
+                          ('st_gid', 'group'), ('st_size', 'size'),
+                          ('st_atime', 'atime'), ('st_mtime', 'mtime'),
+                          ('st_ctime', 'ctime'))
+    _MD5 = 'MD5'
+    _SHA256 = 'SHA256'
+    _SHA512 = 'SHA512'
 
     def __init__(self, log, options):
         self._log = log
@@ -53,7 +53,7 @@ class WalkerUtilities(object):
         processCount = 0
 
         if not self._options.noop:
-            with open(self._options.report_path, u'wb' ) as outFile:
+            with open(self._options.report_path, 'w') as outFile:
                 writer = csv.writer(outFile, delimiter=',',
                                     quoting=csv.QUOTE_ALL)
                 writer.writerow(RowContainer.HEADERS)
@@ -74,7 +74,7 @@ class WalkerUtilities(object):
         fname = os.path.join(root, file)
 
         try:
-            with open(fname, u'rb') as inFile:
+            with open(fname, 'rb') as inFile:
                 row = self._gatherRowStats(inFile.read(), fname)
         except IOError as e:
             self._log.warn("Error opening file: %s, %s", fname, e)
@@ -109,10 +109,10 @@ class WalkerUtilities(object):
 
         head, tail = os.path.split(fname)
         root, ext = os.path.splitext(tail)
-        rc.setColumn(u'path', head)
-        rc.setColumn(u'file', tail)
-        rc.setColumn(u'type', ext.strip(u'.'))
-        rc.setColumn(u'hash', self.HASH_MAP.get(self._hashType)(self, data))
+        rc.setColumn('path', head)
+        rc.setColumn('file', tail)
+        rc.setColumn('type', ext.strip('.'))
+        rc.setColumn('hash', self.HASH_MAP.get(self._hashType)(self, data))
         return rc.serialize()
 
 
@@ -121,10 +121,10 @@ class RowContainer(object):
     This class stores the values for a row of data, it also hold the headers
     used in the CVS output file.
     """
-    HEADERS = [u'File', u'Path', u'Type', u'Size', u'Modified Time (ISO)',
-               u'Access Time (ISO)', u'Created Time (ISO)', u"{}", u'Owner',
-               u'Group', u'Mode']
-    __LOCAL_FUNC = (u'atime', u'mtime', u'ctime', u'mode')
+    HEADERS = ['File', 'Path', 'Type', 'Size', 'Modified Time (ISO)',
+               'Access Time (ISO)', 'Created Time (ISO)', "{}", 'Owner',
+               'Group', 'Mode']
+    __LOCAL_FUNC = ('atime', 'mtime', 'ctime', 'mode')
 
     def __init__(self, log):
         self._log = log
@@ -136,14 +136,14 @@ class RowContainer(object):
         return oct(value & 0xfff)
 
     COLUMN_MAP = OrderedDict((
-        (u'file', lambda x: x), (u'path', lambda x: x), (u'type', lambda x: x),
-        (u'size', unicode), (u'atime', _utcTime), (u'mtime', _utcTime),
-        (u'ctime', _utcTime), (u'hash', lambda x: x), (u'owner', unicode),
-        (u'group', unicode), (u'mode', _mode)))
+        ('file', lambda x: x), ('path', lambda x: x), ('type', lambda x: x),
+        ('size', str), ('atime', _utcTime), ('mtime', _utcTime),
+        ('ctime', _utcTime), ('hash', lambda x: x), ('owner', str),
+        ('group', str), ('mode', _mode)))
 
     @classmethod
     def setHashHeader(self, value):
-        idx = self.HEADERS.index(u'{}')
+        idx = self.HEADERS.index('{}')
         self.HEADERS[idx] = self.HEADERS[idx].format(value)
 
     def serialize(self):

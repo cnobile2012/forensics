@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     options = parser.parse_args()
 
-    if not options.quite and options.log_file == u'':
+    if not options.quite and options.log_file == '':
         level = 1000 # Turns off console logging if a file is not defined.
     elif options.debug:
         level = logging.DEBUG
@@ -79,17 +79,17 @@ if __name__ == '__main__':
     log.info("Options: %s", options)
 
     if not validatePath(options.dir_path, dir=True):
-        msg = (u"The walking path seems to not exist, "
-               u"please check: {}").format(options.dir_path)
+        msg = ("The walking path seems to not exist, "
+               "please check: {}").format(options.dir_path)
         log.critical(msg)
-        if options.quite: print msg
+        if options.quite: print(msg)
         sys.exit(1)
 
     if not validatePath(options.report_path, csv=True):
-        msg = (u"The report path '{}' must include a valid path and "
-               u"CSV file.").format(options.report_path)
+        msg = ("The report path '{}' must include a valid path and "
+               "CSV file.").format(options.report_path)
         log.critical(msg)
-        if options.quite: print msg
+        if options.quite: print(msg)
         sys.exit(1)
 
     # Make MD5 the default if nothing is chosen.
@@ -98,9 +98,9 @@ if __name__ == '__main__':
 
     # If more than one hash algorithm is found fail.
     if (options.md5, options.sha256, options.sha512).count(True) != 1:
-        msg = u"Can only set one of --md5, --sha256, or --sha512."
+        msg = "Can only set one of --md5, --sha256, or --sha512."
         log.critical(msg)
-        if options.quite: print msg
+        if options.quite: print(msg)
         sys.exit(1)
 
     startTime = datetime.datetime.now()
@@ -117,7 +117,7 @@ if __name__ == '__main__':
         if options.quite:
             tb = sys.exc_info()[2]
             traceback.print_tb(tb)
-            print "%s: %s\n" % (sys.exc_info()[0], sys.exc_info()[1])
+            print(("{}: {}\n".format(sys.exc_info()[0], sys.exc_info()[1])))
 
         sys.exit(1)
 
