@@ -25,10 +25,10 @@ def validatePath(path, file=False, csv=False, dir=False):
     elif csv:
         head, tail = os.path.split(path)
         root, ext = os.path.splitext(tail)
-        head = head == u'' and u'.' or head
+        head = head == '' and '.' or head
         #print head, tail, ext
 
-        if os.path.isdir(head) and ext.lower() == u'.csv':
+        if os.path.isdir(head) and ext.lower() == '.csv':
             result = True
     elif dir and os.path.isdir(path):
         result = True
