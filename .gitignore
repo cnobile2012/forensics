@@ -10,6 +10,7 @@ logs/*.log*
 data/*.csv
 data/*.ods
 data/*.xlsx
+data/*.db
 old
 
 # C extensions

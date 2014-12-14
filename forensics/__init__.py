@@ -1,10 +1,13 @@
+# -*- coding: utf-8 -*-
 #
 # forensics/__init__.py
 #
-
+from __future__ import absolute_import
+import sys
 import os
 import logging
 from .walker_utils import WalkerUtilities
+from .network import TCPContainer, UDPContainer, IPContainer
 
 
 def setupLogger(fullpath=None, level=logging.INFO):
@@ -37,3 +40,17 @@ def validatePath(path, file=False, csv=False, dir=False):
                                      "to True")
 
     return result
+
+
+if sys.version_info.major == 2:
+    def fileWrite():
+        pass
+
+
+elif sys.version_info.major == 3:
+    def fileWrite():
+        pass
+
+
+else:
+    raise Exception("Unknown Python version {}".format(sys.version_info.major))
