@@ -86,9 +86,9 @@ class MonitorIP(object):
 
                 if tcpCont.destination_port == port:
                     if hasattr(pytz, 'utc'):
-                        now = datetime.datetime.now(pytz.utc)
+                        now = datetime.datetime.now(pytz.utc).isoformat()
                     else:
-                        now = datetime.datetime.utcnow()
+                        now = datetime.datetime.utcnow().isoformat()
 
                     if self._cursor:
                         self._insert(ipCont.src_addr,
