@@ -51,7 +51,7 @@ class MonitorIP(object):
     def start(self):
         if self._options.data_path:
             if self._options.dump_db:
-                self.dump_db()
+                self.dumpDB()
             else:
                 self._cursor = self._configDB()
                 self._monitor()
@@ -111,7 +111,7 @@ class MonitorIP(object):
         if self._conn:
             self._conn.close()
 
-    def dump_db(self, stream=sys.stdout):
+    def dumpDB(self, stream=sys.stdout):
         conn = sqlite3.connect(self._options.data_path)
 
         for record in conn.iterdump():
@@ -166,6 +166,14 @@ if __name__ == '__main__':
 
     if head != '' and not validatePath(head, dir=True):
         msg = "The data path seems to not exist, please check: {}".format(head)
+        log.critical(msg)
+        if options.quite: print(msg)
+        sys.exit(1)
+
+    requiredTogether = (options.address, options.port, options.protocol)
+
+    if any(requiredTogether) and not all(requiredTogether):
+        msg = "Arguments address, port, and protocol must be used together."
         log.critical(msg)
         if options.quite: print(msg)
         sys.exit(1)
