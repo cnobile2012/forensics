@@ -8,7 +8,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='forensic-utils',
-    version='1.0',
+    version='1.0.0',
     packages=['forensics',],
     scripts=['bin/walker.py',],
     include_package_data=True,
