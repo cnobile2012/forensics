@@ -40,7 +40,8 @@ class ContainerBase(object):
 class IPContainer(ContainerBase):
     _H_SIZE = 20 # Bytes
     TCP = 0x06
-    #UDP = 0x11
+    UDP = 0x11
+    PROTOCOL_MAP = {TCP: 'TCP', UDP: 'UDP'}
 
     def __init__(self, log, packet):
         super(IPContainer, self).__init__(log, packet)
@@ -109,7 +110,24 @@ class TCPContainer(ContainerBase):
 
 
 class UDPContainer(ContainerBase):
-    _H_SIZE = 12 # Bytes
+    _H_SIZE = 12 + 12 # Bytes
 
     def __init__(self, log, packet):
         super(UDPContainer, self).__init__(log, packet)
+
+    def _parse(self):
+        header = struct.unpack('!HHHHLLBBH', self._packet[:self._H_SIZE])
+        self._log.debug("UDP Header: %s", header)
+        self.source_port = header[0]
+        self.destination_port = header[1]
+        self.length = header[2]
+        self.checksum = header[3]
+        self.src_addr = socket.inet_ntoa(header[4])
+        self.dst_addr = socket.inet_ntoa(header[5])
+        self.reserved = header[6]
+        self.protocol = header[7]
+        self.total_length = header[8]
+
+    @property
+    def data(self):
+        return self._packet[self.length:]

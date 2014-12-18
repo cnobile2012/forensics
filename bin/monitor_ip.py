@@ -55,18 +55,21 @@ class MonitorIP(object):
             else:
                 self._cursor = self._configDB()
                 self._monitor()
+        else:
+            self._monitor()
 
     def _configDB(self):
         self._conn = sqlite3.connect(self._options.data_path)
         cursor = self._conn.cursor()
         cursor.execute("CREATE TABLE IF NOT EXISTS monitor_ip "
-                       "(address text, port integer, datetime text)")
+                       "(protocol text, address text, port integer, "
+                       "datetime text)")
         return cursor
 
     def _monitor(self):
         address = self._options.address
         port = int(self._options.port)
-        protocol = self._options.protocol
+        protocol = self._options.protocol.upper()
 
         if not hasattr(IPContainer, protocol):
             self._log.critical("Non-implemented protocol: %s", protocol)
@@ -91,9 +94,9 @@ class MonitorIP(object):
                         now = datetime.datetime.utcnow().isoformat()
 
                     if self._cursor:
-                        self._insert(ipCont.src_addr,
-                                     tcpCont.destination_port,
-                                     now)
+                        protocol = IPContainer.PROTOCOL_MAP.get(ipCont.protocol)
+                        self._insert(protocol, ipCont.src_addr,
+                                     tcpCont.destination_port, now)
 
                     self._log.info("Source Address: %s, "
                                    "Destination Address: %s, UTC time: %s",
@@ -102,9 +105,9 @@ class MonitorIP(object):
                                    tcpCont.source_port,
                                    tcpCont.destination_port)
 
-    def _insert(self, addr, port, dtime):
-        self._cursor.execute("INSERT INTO monitor_ip VALUES (?,?,?)",
-                             (addr, port, dtime))
+    def _insert(self, protocol, addr, port, dtime):
+        self._cursor.execute("INSERT INTO monitor_ip VALUES (?,?,?,?)",
+                             (protocol, addr, port, dtime))
         self._conn.commit()
 
     def closeDB(self):
@@ -181,12 +184,12 @@ if __name__ == '__main__':
     ip = None
 
     try:
-        log.info("Monitoring protocol %s on port %s--started at %s",
+        log.info("Monitoring protocol %s on port %s, started at %s",
                  options.protocol, options.port, startTime)
         ip = MonitorIP(log, options)
         ip.start()
         endTime = datetime.datetime.now()
-        log.info("Monitoring protocol %s on port %s--finished at %s, "
+        log.info("Monitoring protocol %s on port %s, finished at %s, "
                  "elapsed time %s", options.protocol, options.port, endTime,
                  endTime - startTime)
     except Exception as e:
@@ -195,7 +198,7 @@ if __name__ == '__main__':
         if options.quite:
             tb = sys.exc_info()[2]
             traceback.print_tb(tb)
-            print "%s: %s\n" % (sys.exc_info()[0], sys.exc_info()[1])
+            print("{}: {}\n".format(sys.exc_info()[0], sys.exc_info()[1]))
 
         sys.exit(1)
 
