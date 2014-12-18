@@ -165,10 +165,10 @@ if __name__ == '__main__':
     log = setupLogger(fullpath=options.log_file, level=level)
     log.debug("Options: %s", options)
     startTime = datetime.datetime.now()
-    head, tail = os.path.split(options.data_path)
 
-    if head != '' and not validatePath(head, dir=True):
-        msg = "The data path seems to not exist, please check: {}".format(head)
+    if not validatePath(options.data_path, sqlite=True):
+        msg = "The data path seems to not exist, please check: {}".format(
+            options.data_path)
         log.critical(msg)
         if options.quite: print(msg)
         sys.exit(1)

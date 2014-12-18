@@ -17,7 +17,7 @@ def setupLogger(fullpath=None, level=logging.INFO):
     return logging.getLogger()
 
 
-def validatePath(path, file=False, csv=False, dir=False):
+def validatePath(path, file=False, csv=False, dir=False, sqlite=False):
     result = False
 
     if file and os.path.isfile(path):
@@ -35,9 +35,12 @@ def validatePath(path, file=False, csv=False, dir=False):
             result = True
     elif dir and os.path.isdir(path):
         result = True
+    elif sqlite:
+        head, tail = os.path.split(path)
+        result = validatePath(head, dir=True)
     else:
-        logging.getLogger().critical("Must set either file, csv, or dir "
-                                     "to True")
+        logging.getLogger().critical("Must set either file, csv, dir, or "
+                                     "sqlite to True")
 
     return result
 
