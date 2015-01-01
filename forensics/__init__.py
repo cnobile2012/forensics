@@ -7,7 +7,7 @@ import sys
 import os
 import logging
 from .walker_utils import WalkerUtilities
-from .network import TCPContainer, UDPContainer, IPContainer
+from .network import ContainerBase, TCPContainer, UDPContainer, IPContainer
 
 
 def setupLogger(fullpath=None, level=logging.INFO):
@@ -29,7 +29,6 @@ def validatePath(path, file=False, csv=False, dir=False, sqlite=False):
         head, tail = os.path.split(path)
         root, ext = os.path.splitext(tail)
         head = head == '' and '.' or head
-        #print head, tail, ext
 
         if os.path.isdir(head) and ext.lower() == '.csv':
             result = True
