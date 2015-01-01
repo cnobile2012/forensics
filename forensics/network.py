@@ -36,40 +36,9 @@ class ContainerBase(object):
     def data(self):
         raise NotImplementedError("Must implement the 'data' property.")
 
-
-class IPContainer(ContainerBase):
-    _H_SIZE = 20 # Bytes
-    TCP = 0x06
-    UDP = 0x11
-    PROTOCOL_MAP = {TCP: 'TCP', UDP: 'UDP'}
-
-    def __init__(self, log, packet):
-        super(IPContainer, self).__init__(log, packet)
-
-    def _parse(self):
-        header = struct.unpack('!BBHHHBBH4s4s', self._packet[:self._H_SIZE])
-        self._log.debug("IP Header: %s", header)
-        self.version = header[0] >> 4
-        self.header_length = (header[0] & 0x0f) * 4 # Convert to bytes
-        self.differentiated_services = header[1]
-        self.total_length = header[2]
-        self.identification = header[3]
-        self.flags = header[4] >> 13
-        self.fragment_offset = header[4] & 0b0001111111111111
-        self.ttl = header[5]
-        self.protocol = header[6]
-        self.checksum = header[7]
-        self.src_addr = socket.inet_ntoa(header[8])
-        self.dst_addr = socket.inet_ntoa(header[9])
-
-        if self.header_length > self._H_SIZE:
-            self._log.debug("IP Header is longer than %s bytes, %s option "
-                            "bytes need to be parsed.", self._H_SIZE,
-                            self.header_length-self._H_SIZE)
-
-    @property
-    def data(self):
-        return self._packet[self.header_length:]
+    @classmethod
+    def name(self):
+        raise NotImplementedError("Must implement the 'name' method.")
 
 
 class TCPContainer(ContainerBase):
@@ -108,6 +77,13 @@ class TCPContainer(ContainerBase):
     def data(self):
         return self._packet[self.data_offset:]
 
+    @classmethod
+    def name(self):
+        return 'TCP'
+
+    def __str__(self):
+        return TCPContainer.name()
+
 
 class UDPContainer(ContainerBase):
     _H_SIZE = 12 + 12 # Bytes
@@ -131,3 +107,45 @@ class UDPContainer(ContainerBase):
     @property
     def data(self):
         return self._packet[self.length:]
+
+    @classmethod
+    def name(self):
+        return 'UDP'
+
+    def __str__(self):
+        return UDPContainer.name()
+
+
+class IPContainer(ContainerBase):
+    _H_SIZE = 20 # Bytes
+    TCP = 0x06
+    UDP = 0x11
+    PROTOCOL_CLASS_MAP = {TCP: TCPContainer, UDP: UDPContainer}
+
+    def __init__(self, log, packet):
+        super(IPContainer, self).__init__(log, packet)
+
+    def _parse(self):
+        header = struct.unpack('!BBHHHBBH4s4s', self._packet[:self._H_SIZE])
+        self._log.debug("IP Header: %s", header)
+        self.version = header[0] >> 4
+        self.header_length = (header[0] & 0x0f) * 4 # Convert to bytes
+        self.differentiated_services = header[1]
+        self.total_length = header[2]
+        self.identification = header[3]
+        self.flags = header[4] >> 13
+        self.fragment_offset = header[4] & 0b0001111111111111
+        self.ttl = header[5]
+        self.protocol = int(header[6])
+        self.checksum = header[7]
+        self.src_addr = socket.inet_ntoa(header[8])
+        self.dst_addr = socket.inet_ntoa(header[9])
+
+        if self.header_length > self._H_SIZE:
+            self._log.debug("IP Header is longer than %s bytes, %s option "
+                            "bytes need to be parsed.", self._H_SIZE,
+                            self.header_length-self._H_SIZE)
+
+    @property
+    def data(self):
+        return self._packet[self.header_length:]

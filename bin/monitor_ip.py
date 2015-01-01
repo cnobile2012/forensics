@@ -32,7 +32,8 @@ if os.path.isdir(os.path.join(LOCAL_PATH, 'forensics')):
     sys.path.insert(0, LOCAL_PATH)
 
 from forensics import (
-    setupLogger, validatePath, TCPContainer, UDPContainer, IPContainer)
+    setupLogger, validatePath, ContainerBase, TCPContainer, UDPContainer,
+    IPContainer)
 
 
 __version__ = '1.0.0'
@@ -42,9 +43,10 @@ __version_info__ = tuple([ int(num) for num in __version__.split('.')])
 class MonitorIP(object):
     _PACKET_SIZE = 65535
 
-    def __init__(self, log, options):
+    def __init__(self, log, options, protocols):
         self._log = log
         self._options = options
+        self._protocols = protocols
         self._conn = None
         self._cursor = None
 
@@ -67,43 +69,47 @@ class MonitorIP(object):
         return cursor
 
     def _monitor(self):
-        address = self._options.address
-        port = int(self._options.port)
-        protocol = self._options.protocol.upper()
-
-        if not hasattr(IPContainer, protocol):
-            self._log.critical("Non-implemented protocol: %s", protocol)
-            return
-
         soc = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
 
         while True:
             packet = soc.recv(self._PACKET_SIZE)
             ipCont = IPContainer(self._log, packet)
+            Klass = IPContainer.PROTOCOL_CLASS_MAP.get(ipCont.protocol)
 
-            if (ipCont.protocol == IPContainer.TCP and
-                ipCont.dst_addr == address):
-                tcpCont = TCPContainer(self._log, ipCont.data)
-                self._log.debug("Destination Port: %s, Sniffing Port: %s",
-                                tcpCont.destination_port, port)
+            if not issubclass(Klass, ContainerBase):
+                self._log.info("Non-implemented protocol %s.",
+                               ipCont.protocol)
+                continue
 
-                if tcpCont.destination_port == port:
-                    if hasattr(pytz, 'utc'):
-                        now = datetime.datetime.now(pytz.utc).isoformat()
-                    else:
-                        now = datetime.datetime.utcnow().isoformat()
+            if self._protocols and Klass.name() not in self._protocols:
+                continue
 
-                    if self._cursor:
-                        protocol = IPContainer.PROTOCOL_MAP.get(ipCont.protocol)
-                        self._insert(protocol, ipCont.src_addr,
-                                     tcpCont.destination_port, now)
+            address = self._options.address
 
-                    self._log.info("Source Address: %s, "
-                                   "Destination Address: %s, UTC time: %s",
-                                   ipCont.src_addr, ipCont.dst_addr, now)
-                    self._log.info("Source Port: %s, Destination Port: %s",
-                                   tcpCont.source_port,
-                                   tcpCont.destination_port)
+            if address and ipCont.dst_addr not in address:
+                continue
+
+            obj = Klass(self._log, ipCont.data)
+            ports = self._options.ports
+
+            if ports and obj.destination_port not in ports:
+                continue
+
+            if hasattr(pytz, 'utc'):
+                now = datetime.datetime.now(pytz.utc).isoformat()
+            else:
+                now = datetime.datetime.utcnow().isoformat()
+
+            if self._cursor:
+                self._insert(Klass.name(), ipCont.src_addr,
+                             obj.destination_port, now)
+
+            self._log.info("Protocol: %s, Source Address: %s, "
+                           "Destination Address: %s, UTC time: %s",
+                           obj, ipCont.src_addr, ipCont.dst_addr, now)
+            self._log.info("Protocol: %s, Source Port: %s, "
+                           "Destination Port: %s", obj, obj.source_port,
+                           obj.destination_port)
 
     def _insert(self, protocol, addr, port, dtime):
         self._cursor.execute("INSERT INTO monitor_ip VALUES (?,?,?,?)",
@@ -139,19 +145,22 @@ if __name__ == '__main__':
         help="Log file path and filename.")
     parser.add_argument(
         '-a', '--address', type=str, default='', dest='address',
-        required=False, help="IP address to monitor.")
+        help="IP address' to monitor seperated with spaces or commas.")
     parser.add_argument(
-        '-p', '--port', type=str, default='', dest='port',
-        required=False, help="Port to monitor.")
+        '-p', '--ports', type=str, default='', dest='ports',
+        help="Port(s) to monitor seperated with spaces or commas.")
     parser.add_argument(
-        '-P', '--protocol', type=str, default='', dest='protocol',
-        required=False, help="Protocol to monitor.")
+        '-T', '--tcp', action='store_true', default=False, dest='tcp',
+        help="Look for the TCP protocol.")
+    parser.add_argument(
+        '-U', '--udp', action='store_true', default=False, dest='udp',
+        help="Look for the UDP protocol.")
     parser.add_argument(
         '-d', '--data-path', type=str, default='', dest='data_path',
-        required=False, help="Path to SQLite database file.")
+        help="Path to SQLite database file.")
     parser.add_argument(
         '-b', '--dump-db', action='store_true', dest='dump_db',
-        required=False, help="Dump the database if it exists.")
+        help="Dump the database if it exists.")
 
     options = parser.parse_args()
 
@@ -173,27 +182,36 @@ if __name__ == '__main__':
         if options.quite: print(msg)
         sys.exit(1)
 
-    requiredTogether = (options.address, options.port, options.protocol)
+    protocols = []
 
-    if any(requiredTogether) and not all(requiredTogether):
-        msg = "Arguments address, port, and protocol must be used together."
-        log.critical(msg)
-        if options.quite: print(msg)
-        sys.exit(1)
+    if options.tcp:
+        protocols.append("TCP")
 
-    ip = None
+    if options.udp:
+        protocols.append("UDP")
+
+    if options.ports:
+        options.ports = [p.strip()
+                         for p in options.ports.replace(' ', ',').split(',')
+                         if p]
+
+    if options.address:
+        options.address = [a.strip()
+                           for a in options.address.replace(' ', ',').split(',')
+                           if a]
+
+    mip = None
 
     try:
-        log.info("Monitoring protocol %s on port %s, started at %s",
-                 options.protocol, options.port, startTime)
-        ip = MonitorIP(log, options)
-        ip.start()
+        log.info("Monitoring protocol(s) %s, started at %s",
+                 protocols, startTime)
+        mip = MonitorIP(log, options, protocols)
+        mip.start()
         endTime = datetime.datetime.now()
-        log.info("Monitoring protocol %s on port %s, finished at %s, "
-                 "elapsed time %s", options.protocol, options.port, endTime,
-                 endTime - startTime)
+        log.info("Monitoring protocol(s) %s, finished at %s, elapsed time %s",
+                 protocols, endTime, endTime - startTime)
     except Exception as e:
-        if ip: ip.closeDB() # Close the database if exists.
+        if mip: mip.closeDB() # Close the database if exists.
 
         if options.quite:
             tb = sys.exc_info()[2]
