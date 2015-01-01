@@ -195,7 +195,7 @@ if __name__ == '__main__':
     if options.ports:
         options.ports = [int(p.strip())
                          for p in options.ports.replace(' ', ',').split(',')
-                         if p and p.isdigit()]
+                         if p and p.strip().isdigit()]
 
     if options.address:
         options.address = [a.strip()
