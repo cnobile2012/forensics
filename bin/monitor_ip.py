@@ -20,6 +20,7 @@ import argparse
 import datetime
 import socket
 import sqlite3
+import signal
 
 try:
     import pytz
@@ -49,12 +50,14 @@ class MonitorIP(object):
         self._protocols = protocols
         self._conn = None
         self._cursor = None
+        self._wait = True
 
     def start(self):
         if self._options.data_path:
             if self._options.dump_db:
                 self.dumpDB()
             else:
+                self._setExitHandler(self._kill)
                 self._cursor = self._configDB()
                 self._monitor()
         else:
@@ -68,10 +71,28 @@ class MonitorIP(object):
                        "datetime text)")
         return cursor
 
+    def _setExitHandler(self, func):
+        if os.name == "nt":
+            try:
+                import win32api
+                win32api.SetConsoleCtrlHandler(func, True)
+            except ImportError:
+                version = ".".join(map(str, sys.version_info[:2]))
+                raise Exception("pywin32 not installed for Python " + version)
+        else:
+            signal.signal(signal.SIGTERM, func)
+            signal.siginterrupt(signal.SIGTERM, False)
+            signal.signal(signal.SIGINT, func)
+            signal.siginterrupt(signal.SIGINT, False)
+
+    def _kill(self, signum, frame):
+        self._log.info("Terminated with signal %s", signum)
+        self._wait = False
+
     def _monitor(self):
         soc = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
 
-        while True:
+        while self._wait:
             packet = soc.recv(self._PACKET_SIZE)
             ipCont = IPContainer(self._log, packet)
             Klass = IPContainer.PROTOCOL_CLASS_MAP.get(ipCont.protocol)
