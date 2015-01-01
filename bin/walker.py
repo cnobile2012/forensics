@@ -28,6 +28,11 @@ import traceback
 import argparse
 import datetime
 
+LOCAL_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+if os.path.isdir(os.path.join(LOCAL_PATH, 'forensics')):
+    sys.path.insert(0, LOCAL_PATH)
+
 from forensics import setupLogger, validatePath, WalkerUtilities
 
 
