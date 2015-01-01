@@ -78,21 +78,24 @@ class MonitorIP(object):
 
             if not issubclass(Klass, ContainerBase):
                 self._log.info("Non-implemented protocol %s.",
-                               ipCont.protocol)
+                               hex(ipCont.protocol))
                 continue
 
             if self._protocols and Klass.name() not in self._protocols:
+                self._log.debug("Protocol: %s rejected.", Klass)
                 continue
 
             address = self._options.address
 
             if address and ipCont.dst_addr not in address:
+                self._log.debug("Address %s rejected.", ipCont.dst_addr)
                 continue
 
             obj = Klass(self._log, ipCont.data)
             ports = self._options.ports
 
             if ports and obj.destination_port not in ports:
+                self._log.debug("Port %s rejected.", obj.destination_port)
                 continue
 
             if hasattr(pytz, 'utc'):
@@ -125,7 +128,6 @@ class MonitorIP(object):
 
         for record in conn.iterdump():
             stream.write("{}\n".format(record))
-            self._log.info("DUMP: %s", record)
 
 
 if __name__ == '__main__':
@@ -191,15 +193,16 @@ if __name__ == '__main__':
         protocols.append("UDP")
 
     if options.ports:
-        options.ports = [p.strip()
+        options.ports = [int(p.strip())
                          for p in options.ports.replace(' ', ',').split(',')
-                         if p]
+                         if p and p.isdigit()]
 
     if options.address:
         options.address = [a.strip()
                            for a in options.address.replace(' ', ',').split(',')
                            if a]
 
+    log.debug("Options: %s", options)
     mip = None
 
     try:
