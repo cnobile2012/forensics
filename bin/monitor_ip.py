@@ -11,6 +11,9 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 #
+# Must run as root out side of the virtual environment.
+# sudo python3.13 ./bin/monitor_ip.py -d data/monitor_ip.db -TU
+#
 
 import os
 import sys
@@ -89,11 +92,11 @@ class MonitorIP(object):
         self._wait = False
 
     def _monitor(self):
-        soc = socket.socket(socket.AF_INET, socket.SOCK_RAW,
-                            socket.IPPROTO_TCP)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_RAW,
+                             socket.IPPROTO_TCP)
 
         while self._wait:
-            packet = soc.recv(self._PACKET_SIZE)
+            packet = sock.recv(self._PACKET_SIZE)
             ipCont = IPContainer(self._log, packet)
             Klass = IPContainer.PROTOCOL_CLASS_MAP.get(ipCont.protocol)
 
