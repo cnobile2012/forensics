@@ -27,17 +27,16 @@ try:
 except:
     pytz = None
 
-LOCAL_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-
-if os.path.isdir(os.path.join(LOCAL_PATH, 'forensics')):
-    sys.path.insert(0, LOCAL_PATH)
+PWD = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(PWD)
+sys.path.append(BASE_DIR)
 
 from forensics import (
     setupLogger, validatePath, ContainerBase, TCPContainer, UDPContainer,
     IPContainer)
 
 
-__version__ = '1.0.0'
+__version__ = '2.0.0'
 __version_info__ = tuple([ int(num) for num in __version__.split('.')])
 
 
@@ -90,7 +89,8 @@ class MonitorIP(object):
         self._wait = False
 
     def _monitor(self):
-        soc = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
+        soc = socket.socket(socket.AF_INET, socket.SOCK_RAW,
+                            socket.IPPROTO_TCP)
 
         while self._wait:
             packet = soc.recv(self._PACKET_SIZE)
@@ -152,8 +152,7 @@ class MonitorIP(object):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description=("Forensic IP monitor."))
+    parser = argparse.ArgumentParser(description=("Forensic IP monitor."))
     parser.add_argument(
         '-n', '--noop', action='store_true', default=False, dest='noop',
         help="Run as if doing something, but do nothing.")
@@ -240,7 +239,7 @@ if __name__ == '__main__':
         if options.quite:
             tb = sys.exc_info()[2]
             traceback.print_tb(tb)
-            print("{}: {}\n".format(sys.exc_info()[0], sys.exc_info()[1]))
+            print(f"{sys.exc_info()[0]}: {sys.exc_info()[1]}\n")
 
         sys.exit(1)
 

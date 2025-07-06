@@ -2,7 +2,7 @@
 #
 # forensics/walker_utils.py
 #
-# by: Carl J.Nobile
+# by: Carl J. Nobile
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -20,12 +20,11 @@ import hashlib
 import csv
 from collections import OrderedDict
 
-
 __version__ = '1.0.0'
 __version_info__ = tuple([ int(num) for num in __version__.split('.')])
 
 
-class WalkerUtilities(object):
+class WalkerUtilities:
     """
     This class contains utility methods used for walking through a directory
     tree and gathering information about files.
@@ -53,17 +52,18 @@ class WalkerUtilities(object):
         processCount = 0
 
         if not self._options.noop:
-            with open(self._options.report_path, 'w') as outFile:
-                writer = csv.writer(outFile, delimiter=',',
-                                    quoting=csv.QUOTE_ALL)
+            with open(self._options.report_path, 'w', newline='',
+                      encoding='utf-8') as f:
+                writer = csv.writer(f, delimiter=',', quoting=csv.QUOTE_ALL)
                 writer.writerow(RowContainer.HEADERS)
 
                 for root, dirs, files in os.walk(self._options.dir_path,
                                                  onerror=self.__handleError):
-                    for file in files:
-                        row = self._generateFileInfo(root, file)
+                    for each in files:
+                        row = self._generateFileInfo(root, each)
                         writer.writerow(row)
                         processCount += 1
+                        f.flush()
 
         return processCount
 
@@ -72,13 +72,13 @@ class WalkerUtilities(object):
 
     def _generateFileInfo(self, root, file):
         fname = os.path.join(root, file)
+        row = []
 
         try:
-            with open(fname, 'rb') as inFile:
-                row = self._gatherRowStats(inFile.read(), fname)
+            with open(fname, 'rb') as f:
+                row[:] = self._gatherRowStats(f.read(), fname)
         except IOError as e:
             self._log.warn("Error opening file: %s, %s", fname, e)
-            row = []
 
         return row
 
@@ -116,7 +116,7 @@ class WalkerUtilities(object):
         return rc.serialize()
 
 
-class RowContainer(object):
+class RowContainer:
     """
     This class stores the values for a row of data, it also hold the headers
     used in the CVS output file.
@@ -133,7 +133,9 @@ class RowContainer(object):
         return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(seconds))
 
     def _mode(self, value):
-        return oct(value & 0xfff)
+        value = oct(value & 0xfff)
+        # Compensate for differences between Python 2 and 3.
+        return value[2:] if value.find('o') == 1 else value[1:]
 
     COLUMN_MAP = OrderedDict((
         ('file', lambda x: x), ('path', lambda x: x), ('type', lambda x: x),

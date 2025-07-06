@@ -1,10 +1,6 @@
 #
 # Development by Carl J. Nobile
 #
-# $Author: $
-# $Date: $
-# $Revision: $
-#
 
 PREFIX		= $(shell pwd)
 PACKAGE_DIR	= $(shell echo $${PWD\#\#*/})
@@ -35,6 +31,6 @@ clean	:
 	@rm -rf dist
 
 clobber	: clean
-	@(cd $(DOCS_DIR); make clobber)
+	#@(cd $(DOCS_DIR); make clobber)
 	@rm data/*.csv
 	@rm logs/*.log

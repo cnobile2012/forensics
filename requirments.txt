@@ -1,0 +1,8 @@
+# PIP requirements
+#
+# $ pip install -r requirments.txt
+#
+
+# Timezone information
+pytz
+ipython

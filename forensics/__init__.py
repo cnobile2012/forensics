@@ -44,15 +44,5 @@ def validatePath(path, file=False, csv=False, dir=False, sqlite=False):
     return result
 
 
-if sys.version_info.major == 2:
-    def fileWrite():
-        pass
-
-
-elif sys.version_info.major == 3:
-    def fileWrite():
-        pass
-
-
-else:
-    raise Exception("Unknown Python version {}".format(sys.version_info.major))
+def fileWrite():
+    pass

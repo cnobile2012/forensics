@@ -1,15 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# This code is a complete rewrite of parts of Chet Hosmer's code from his
-# book "Python Forensics".
-#
-# Publisher: Elsevier
-# ISBN: 978-0-12-418676-7
-#
-# This work is an exercise in understanding the concepts of Forensics with
-# regard to its use in computer sicence.
-#
 # by: Carl J. Nobile
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -32,7 +23,7 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(PWD)
 sys.path.append(BASE_DIR)
 
-from forensics import setupLogger, validatePath, WalkerUtilities
+from forensics import setupLogger, validatePath
 
 
 __version__ = '2.0.0'
@@ -40,8 +31,7 @@ __version_info__ = tuple([ int(num) for num in __version__.split('.')])
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description=("Forensic Directory Tree Walker"))
+    parser = argparse.ArgumentParser(description=("Forensic Document Search"))
     parser.add_argument(
         '-n', '--noop', action='store_true', default=False, dest='noop',
         help="Run as if doing something, but do nothing.")
@@ -52,23 +42,17 @@ if __name__ == '__main__':
         '-D', '--debug', action='store_true', dest='debug',
         help="Turn on DEBUG logging mode, can be very verbose.")
     parser.add_argument(
-        '-d', '--dir-path', type=str, default='', dest='dir_path',
-        required=True, help="Directory path to walk.")
-    parser.add_argument(
-        '-r', '--report-path', type=str, default='', dest='report_path',
-        required=True, help="Outgoing CSV file path and filename.")
-    parser.add_argument(
         '-l', '--log-file', type=str, default='', dest='log_file',
         help="Log file path and filename.")
     parser.add_argument(
-        '--md5', action='store_true', dest='md5', default=False,
-        help="Use the MD5 algorithm (default).")
+        '-k', '--keyword-path', type=str, default='', dest='keyword_path',
+        required=True, help="File that contains keywords.")
     parser.add_argument(
-        '--sha256', action='store_true', dest='sha256', default=False,
-        help="Use the SHA256 algorithm.")
+        '-s', '--search-path', type=str, default='', dest='search_path',
+        required=True, help="File or path of files to search.")
     parser.add_argument(
-        '--sha512', action='store_true', dest='sha512', default=False,
-        help="Use the SHA512 algorithm.")
+        '-m', '--matrix-path', type=str, default='', dest='matrix_path',
+        required=True, help="Weighted matrix filename.")
 
     options = parser.parse_args()
 
@@ -82,27 +66,24 @@ if __name__ == '__main__':
     log = setupLogger(fullpath=options.log_file, level=level)
     log.info("Options: %s", options)
 
-    if not validatePath(options.dir_path, dir=True):
-        msg = ("The walking path seems to not exist, "
+    if (not validatePath(options.search_path, dir=True) or not
+        validatePath(options.search_path, file=True)):
+        msg = ("The search path can be either a file or a path of files, "
                f"please check: {options.dir_path}")
         log.critical(msg)
         if options.quite: print(msg)
         sys.exit(1)
 
-    if not validatePath(options.report_path, csv=True):
-        msg = (f"The report path '{options.report_path}' must include a "
-               "valid path and CSV file.")
+    if not validatePath(options.keyword_path, file=True):
+        msg = (f"The keyword path '{options.keyword_path}' must include a "
+               "valid path and file.")
         log.critical(msg)
         if options.quite: print(msg)
         sys.exit(1)
 
-    # Make MD5 the default if nothing is chosen.
-    if not options.md5 and not options.sha256 and not options.sha512:
-        options.md5 = True
-
-    # If more than one hash algorithm is found fail.
-    if (options.md5, options.sha256, options.sha512).count(True) != 1:
-        msg = "Can only set one of --md5, --sha256, or --sha512."
+    if not validatePath(options.matrix_path, file=True):
+        msg = (f"The matrix path '{options.matrix_path}' must include a "
+               "valid path and file.")
         log.critical(msg)
         if options.quite: print(msg)
         sys.exit(1)
@@ -110,11 +91,11 @@ if __name__ == '__main__':
     startTime = datetime.datetime.now()
 
     try:
-        log.info("Walking path %s started at %s", options.dir_path, startTime)
-        wu = WalkerUtilities(log, options)
-        pCount = wu.walkPath()
+        log.info("Search path %s started at %s", options.dir_path, startTime)
+        #su = SearchUtilities(log, options)
+        #pCount = su.start()
         endTime = datetime.datetime.now()
-        log.info("Walking path %s finished, %s files processed at %s, "
+        log.info("Search path %s finished, %s files processed at %s, "
                  "elapsed time %s", options.dir_path, pCount, endTime,
                  endTime - startTime)
     except Exception as e:
