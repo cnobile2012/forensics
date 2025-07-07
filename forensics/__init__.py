@@ -42,7 +42,3 @@ def validatePath(path, file=False, csv=False, dir=False, sqlite=False):
                                      "sqlite to True")
 
     return result
-
-
-def fileWrite():
-    pass

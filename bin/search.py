@@ -102,7 +102,8 @@ if __name__ == '__main__':
         if options.quite:
             tb = sys.exc_info()[2]
             traceback.print_tb(tb)
-            print(f"{sys.exc_info()[0]}: {sys.exc_info()[1]}\n")
+            print(f"{sys.exc_info()[0]}: {sys.exc_info()[1]}\n",
+                  file=sys.stderr)
 
         sys.exit(1)
 
